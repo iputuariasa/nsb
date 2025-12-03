@@ -33,7 +33,22 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request);
+        $data = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
+            'position' => 'required',
+            'role' => 'required',
+            'hod' => 'required',
+        ]);
+
+        $data['password'] = bcrypt($data['password']);
+        $user = User::create($data);
+
+        return response()->json([
+            'message' => 'Data berhasil disimpan',
+            'user' => $user
+        ]);
     }
 
     /**
@@ -57,7 +72,26 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        
+        $user = User::findOrFail($user->id);
+
+        $data = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'position' => 'required',
+            'role' => 'required',
+            'hod' => 'required',
+        ]);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return response()->json([
+            'message' => 'Data berhasil diupdate',
+            'user' => $user
+        ]);
     }
 
     /**
@@ -65,7 +99,10 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        $user->delete();
-        return response()->json(['message' => 'User deleted']);
+        User::findOrFail($user->id)->delete();
+
+        return response()->json([
+            'message' => 'Data berhasil dihapus'
+        ]);
     }
 }

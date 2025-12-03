@@ -14,5 +14,5 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/', [DashboardController::class, 'index'])->name('home');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::resource('/users', UserController::class);
+    Route::resource('users', UserController::class);
 });

@@ -12,9 +12,9 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
     protected $guarded = ['id'];
 
-    // public function branch(){
-    //     return $this->belongsTo(Branch::class, 'branch_id');
-    // }
+    public function branch(){
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
 
 
 
