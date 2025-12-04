@@ -77,12 +77,6 @@
             }
         }
     }
-
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('userStore', {
-            search: ''
-        });
-    });
   </script>
 </body>
 </html>

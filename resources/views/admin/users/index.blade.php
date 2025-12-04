@@ -60,7 +60,7 @@
                     x-show="showModal"
                     x-cloak
                     @keydown.escape.window="closeModal"
-                    class="fixed inset-0 z-99 flex items-center justify-center bg-black/50 p-4" >
+                    class="fixed inset-0 z-99 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
                     <div
                         @click.outside=""
                         class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative" >
@@ -141,253 +141,259 @@
 </div>
 
 <script>
-function userForm() {
-    return {
-        showModal: false,
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('userStore', {
+            search: ''
+        });
+    });
 
-        form: {
-            name: '',
-            email: '',
-            password: '',
-            position: '',
-            role: '',
-            hod: '0',
-        },
+    function userForm() {
+        return {
+            showModal: false,
 
-        confirmPassword: '',
-        users: @json($users),
-        isEdit: false,
-        editId: null,
-
-        // ===========================
-        // FILTER USER
-        // ===========================
-        get filteredUsers() {
-            if (!Array.isArray(this.users)) return [];
-
-            const keyword = (Alpine.store('userStore').search || '').toLowerCase();
-
-            return this.users.filter(user => {
-                const name  = (user.name  || '').toLowerCase();
-                const email = (user.email || '').toLowerCase();
-
-                return name.includes(keyword) || email.includes(keyword);
-            });
-        },
-
-        // ===========================
-        // FORMAT TANGGAL
-        // ===========================
-        formatDate(dateStr) {
-            const date = new Date(dateStr);
-            const tanggal = date.toLocaleDateString('id-ID', {
-                day: 'numeric', month: 'long', year: 'numeric'
-            });
-            const jam = date.toLocaleTimeString('id-ID', {
-                hour: '2-digit', minute: '2-digit', hour12: false
-            });
-            return `${tanggal} ${jam}`;
-        },
-
-        // ===========================
-        // TAMBAH USER
-        // ===========================
-        addUser() {
-            this.resetForm();
-            this.isEdit = false;
-            this.showModal = true;
-        },
-
-        // ===========================
-        // EDIT USER
-        // ===========================
-        editUser(user) {
-            this.form.name = user.name;
-            this.form.email = user.email;
-            this.form.password = '';
-            this.form.position = user.position;
-            this.form.role = user.role;
-            this.form.hod = user.hod;
-            this.confirmPassword = '';
-            this.editId = user.id;
-            this.isEdit = true;
-            this.showModal = true;
-        },
-
-        // ===========================
-        // SUBMIT FORM (ADD & UPDATE)
-        // ===========================
-        async submitForm() {
-
-            if (!this.isEdit && this.form.password !== this.confirmPassword) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: 'Password dan konfirmasi tidak cocok!'
-                });
-                return;
-            }
-
-            const result = await Swal.fire({
-                title: this.isEdit ? 'Update Data?' : 'Simpan Data?',
-                text: 'Pastikan data sudah benar',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Ya',
-                cancelButtonText: 'Batal'
-            });
-
-            if (!result.isConfirmed) return;
-
-            let url = '/users';
-            let method = 'POST';
-
-            if (this.isEdit) {
-                url = `/users/${this.editId}`;
-                method = 'PUT';
-            }
-
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(this.form)
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) throw data;
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: data.message || 'Data berhasil disimpan'
-                });
-
-                this.closeModal();
-                if (this.isEdit) {
-                    const index = this.users.findIndex(u => u.id === this.editId);
-                    if (index !== -1) {
-                        const updatedUser = data.user || data.data;
-
-                        const index = this.users.findIndex(u => u.id === this.editId);
-
-                        if (index !== -1) {
-                            // hapus dulu dari array
-                            this.users.splice(index, 1);
-
-                            // masukkan ulang sebagai object baru
-                            this.users.unshift({ ...updatedUser });
-                        }
-                    }
-                } else {
-                    const newUser = data.user || data.data;
-                    this.users = [
-                        newUser,
-                        ...this.users.filter(u => u.id !== newUser.id)
-                    ];
-                }
-
-            } catch (error) {
-
-                let msg = 'Terjadi kesalahan';
-
-                if (error?.errors) {
-                    msg = Object.values(error.errors)[0][0];
-                }
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: msg
-                });
-            }
-        },
-
-        // ===========================
-        // DELETE USER
-        // ===========================
-        async deleteUser(id) {
-
-            const result = await Swal.fire({
-                title: 'Yakin hapus user?',
-                text: 'Data yang dihapus tidak bisa dikembalikan!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal'
-            });
-
-            if (!result.isConfirmed) return;
-
-            try {
-                const response = await fetch(`/users/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) throw data;
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: data.message || 'User berhasil dihapus'
-                });
-
-                this.users = this.users.filter(u => u.id !== id);
-
-            } catch (error) {
-
-                let msg = 'Gagal menghapus data';
-
-                if (error?.errors) {
-                    msg = Object.values(error.errors)[0][0];
-                }
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: msg
-                });
-            }
-        },
-
-        // ===========================
-        // RESET FORM
-        // ===========================
-        resetForm() {
-            this.form = {
+            form: {
                 name: '',
                 email: '',
                 password: '',
                 position: '',
                 role: '',
-                hod: '0'
-            };
+                hod: '0',
+            },
 
-            this.confirmPassword = '';
-            this.editId = null;
-            this.isEdit = false;
-        },
+            confirmPassword: '',
+            users: @json($users),
+            isEdit: false,
+            editId: null,
 
-        // ===========================
-        // TUTUP MODAL
-        // ===========================
-        closeModal() {
-            this.showModal = false;
-            this.resetForm();
-        },
+            // ===========================
+            // FILTER USER
+            // ===========================
+            get filteredUsers() {
+                if (!Array.isArray(this.users)) return [];
+
+                const keyword = (Alpine.store('userStore').search || '').toLowerCase();
+
+                return this.users.filter(user => {
+                    const name  = (user.name  || '').toLowerCase();
+                    const email = (user.email || '').toLowerCase();
+
+                    return name.includes(keyword) || email.includes(keyword);
+                });
+            },
+
+            // ===========================
+            // FORMAT TANGGAL
+            // ===========================
+            formatDate(dateStr) {
+                const date = new Date(dateStr);
+                const tanggal = date.toLocaleDateString('id-ID', {
+                    day: 'numeric', month: 'long', year: 'numeric'
+                });
+                const jam = date.toLocaleTimeString('id-ID', {
+                    hour: '2-digit', minute: '2-digit', hour12: false
+                });
+                return `${tanggal} ${jam}`;
+            },
+
+            // ===========================
+            // TAMBAH USER
+            // ===========================
+            addUser() {
+                this.resetForm();
+                this.isEdit = false;
+                this.showModal = true;
+            },
+
+            // ===========================
+            // EDIT USER
+            // ===========================
+            editUser(user) {
+                this.form.name = user.name;
+                this.form.email = user.email;
+                this.form.password = '';
+                this.form.position = user.position;
+                this.form.role = user.role;
+                this.form.hod = user.hod;
+                this.confirmPassword = '';
+                this.editId = user.id;
+                this.isEdit = true;
+                this.showModal = true;
+            },
+
+            // ===========================
+            // SUBMIT FORM (ADD & UPDATE)
+            // ===========================
+            async submitForm() {
+
+                if (!this.isEdit && this.form.password !== this.confirmPassword) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Password dan konfirmasi tidak cocok!'
+                    });
+                    return;
+                }
+
+                const result = await Swal.fire({
+                    title: this.isEdit ? 'Update Data?' : 'Simpan Data?',
+                    text: 'Pastikan data sudah benar',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (!result.isConfirmed) return;
+
+                let url = '/users';
+                let method = 'POST';
+
+                if (this.isEdit) {
+                    url = `/users/${this.editId}`;
+                    method = 'PUT';
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(this.form)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) throw data;
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: data.message || 'Data berhasil disimpan'
+                    });
+
+                    this.closeModal();
+                    if (this.isEdit) {
+                        const index = this.users.findIndex(u => u.id === this.editId);
+                        if (index !== -1) {
+                            const updatedUser = data.user || data.data;
+
+                            const index = this.users.findIndex(u => u.id === this.editId);
+
+                            if (index !== -1) {
+                                // hapus dulu dari array
+                                this.users.splice(index, 1);
+
+                                // masukkan ulang sebagai object baru
+                                this.users.unshift({ ...updatedUser });
+                            }
+                        }
+                    } else {
+                        const newUser = data.user || data.data;
+                        this.users = [
+                            newUser,
+                            ...this.users.filter(u => u.id !== newUser.id)
+                        ];
+                    }
+
+                } catch (error) {
+
+                    let msg = 'Terjadi kesalahan';
+
+                    if (error?.errors) {
+                        msg = Object.values(error.errors)[0][0];
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: msg
+                    });
+                }
+            },
+
+            // ===========================
+            // DELETE USER
+            // ===========================
+            async deleteUser(id) {
+
+                const result = await Swal.fire({
+                    title: 'Yakin hapus user?',
+                    text: 'Data yang dihapus tidak bisa dikembalikan!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    const response = await fetch(`/users/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) throw data;
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: data.message || 'User berhasil dihapus'
+                    });
+
+                    this.users = this.users.filter(u => u.id !== id);
+
+                } catch (error) {
+
+                    let msg = 'Gagal menghapus data';
+
+                    if (error?.errors) {
+                        msg = Object.values(error.errors)[0][0];
+                    }
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: msg
+                    });
+                }
+            },
+
+            // ===========================
+            // RESET FORM
+            // ===========================
+            resetForm() {
+                this.form = {
+                    name: '',
+                    email: '',
+                    password: '',
+                    position: '',
+                    role: '',
+                    hod: '0'
+                };
+
+                this.confirmPassword = '';
+                this.editId = null;
+                this.isEdit = false;
+            },
+
+            // ===========================
+            // TUTUP MODAL
+            // ===========================
+            closeModal() {
+                this.showModal = false;
+                this.resetForm();
+            },
+        }
     }
-}
 </script>
 
 @endsection

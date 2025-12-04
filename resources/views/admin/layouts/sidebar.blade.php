@@ -15,18 +15,40 @@
           <span class="ml-2">Dashboard</span>
         </a>
       </li>
-      <li x-data="{ open: false }">
-        <button @click="open = !open" class="{{ Request::is('master*') ? 'active' : '' }} flex items-center justify-between px-4 py-2 w-full rounded-lg transition hover:bg-gray-200">
-            <div class="flex items-center">
-                <i class="fa-solid fa-server text-emerald-500 w-6"></i>
-                <span class="ml-2">Data Master</span>
-            </div>
-            <i :class="open ? 'rotate-90' : ''" class="fas fa-chevron-right transition-transform duration-300"></i>
-        </button>
-        <ul x-show="open" x-transition class="pl-6 space-y-2 rounded-lg overflow-hidden mt-2">
-            <li><a href="/users" class="{{ Request::is('users*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200"><i class="fas fa-users text-orange-500 w-6"></i><span class="ml-2">Data Users</span></a></li>
-        </ul>
+      <li x-data="{ open: {{ Request::is('master*') || Request::is('users*') ? 'true' : 'false' }} }">
+          <button 
+              @click="open = !open" 
+              class="{{ Request::is('master*') || Request::is('users*') ? 'active' : '' }} 
+              flex items-center justify-between px-4 py-2 w-full rounded-lg transition hover:bg-gray-200">
+
+              <div class="flex items-center">
+                  <i class="fa-solid fa-server text-emerald-500 w-6"></i>
+                  <span class="ml-2">Data Master</span>
+              </div>
+
+              <i 
+                  :class="open ? 'rotate-90' : ''" 
+                  class="fas fa-chevron-right transition-transform duration-300">
+              </i>
+          </button>
+
+          <ul 
+              x-show="open" 
+              x-transition
+              class="pl-6 space-y-2 rounded-lg overflow-hidden mt-2"
+          >
+              <li>
+                  <a 
+                      href="/users" 
+                      class="{{ Request::is('users*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
+                      
+                      <i class="fas fa-users text-orange-500 w-6"></i>
+                      <span class="ml-2">Data Users</span>
+                  </a>
+              </li>
+          </ul>
       </li>
+
       <li>
         <a href="#" class="flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
           <i class="fa-solid fa-database text-purple-500 w-6"></i>
