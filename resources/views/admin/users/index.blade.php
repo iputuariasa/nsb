@@ -29,7 +29,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <template x-for="user, index in filteredUsers" :key="user.id">
+                        <template x-for="(user, index) in filteredUsers" :key="user.id">
                             <tr class="hover:bg-slate-50">
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium">
                                     <div class="h-7 w-7 bg-green-600 text-white text-center flex justify-center items-center text-xl rounded font-black" x-text="index + 1"></div>
@@ -66,7 +66,7 @@
                         class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative" >
                         <h2 class="text-lg font-bold mb-4" x-text="isEdit ? 'Edit User' : 'Tambah User'"></h2>
 
-                        <form @submit.prevent="submitForm" x-data="passwordMatch()">
+                        <form @submit.prevent="submitForm">
                             @csrf
                             <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-12">
                                 <div class="sm:col-span-12">
@@ -163,11 +163,16 @@ function userForm() {
         // FILTER USER
         // ===========================
         get filteredUsers() {
-            const keyword = Alpine.store('userStore').search.toLowerCase();
-            return this.users.filter(user =>
-                user.name.toLowerCase().includes(keyword) ||
-                user.email.toLowerCase().includes(keyword)
-            );
+            if (!Array.isArray(this.users)) return [];
+
+            const keyword = (Alpine.store('userStore').search || '').toLowerCase();
+
+            return this.users.filter(user => {
+                const name  = (user.name  || '').toLowerCase();
+                const email = (user.email || '').toLowerCase();
+
+                return name.includes(keyword) || email.includes(keyword);
+            });
         },
 
         // ===========================
@@ -247,7 +252,7 @@ function userForm() {
                     method: method,
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify(this.form)
@@ -267,10 +272,24 @@ function userForm() {
                 if (this.isEdit) {
                     const index = this.users.findIndex(u => u.id === this.editId);
                     if (index !== -1) {
-                        this.users[index] = data.user;
+                        const updatedUser = data.user || data.data;
+
+                        const index = this.users.findIndex(u => u.id === this.editId);
+
+                        if (index !== -1) {
+                            // hapus dulu dari array
+                            this.users.splice(index, 1);
+
+                            // masukkan ulang sebagai object baru
+                            this.users.unshift({ ...updatedUser });
+                        }
                     }
                 } else {
-                    this.users.unshift(data.user); // khusus ADD
+                    const newUser = data.user || data.data;
+                    this.users = [
+                        newUser,
+                        ...this.users.filter(u => u.id !== newUser.id)
+                    ];
                 }
 
             } catch (error) {
@@ -309,7 +328,7 @@ function userForm() {
                 const response = await fetch(`/users/${id}`, {
                     method: 'DELETE',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
                     }
                 });
