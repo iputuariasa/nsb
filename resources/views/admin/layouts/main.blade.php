@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="css/style.css">
   @vite('resources/css/app.css')
 </head>
-<body class="m-0 font-sans text-base antialiased bg-gray-50 text-slate-500" x-data="{ globalSearch: '' }">
+<body class="m-0 font-sans text-base antialiased bg-gray-50 text-slate-500">
   <div class="absolute w-full bg-blue-500 min-h-75"></div>
   
   <!-- Sidebar -->
@@ -30,7 +30,18 @@
       @yield('container')
     </section>
   </main>
-
+  <script>
+      document.addEventListener('alpine:init', () => {
+          Alpine.store('globalSearch', {
+              query: '',
+              // optional: tambah debounce biar nggak lag saat ketik cepat
+              set(value) {
+                  this.query = value;
+              }
+          });
+      });
+  </script>
+  <script src="{{ asset('js/crud.js') }}"></script>
   <script>
     document.getElementById("menuToggle").addEventListener("click", function () {
     let sidebar = document.getElementById("sidebar");
@@ -78,5 +89,6 @@
         }
     }
   </script>
+  @stack('scripts')
 </body>
 </html>

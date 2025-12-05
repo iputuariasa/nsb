@@ -3,13 +3,32 @@
 @section('container')
 <style>[x-cloak]{display:none!important}</style>
 
-<div x-data="userForm()">
+@push('scripts')
+<script>
+    window.crudConfig = {
+        module: 'User',
+        route: '/users',
+        items: @json($users),
+        fields: {
+            name: '',
+            email: '',
+            password: '',
+            position: '',
+            role: '',
+            hod: '0'
+        },
+        passwordField: true
+    };
+</script>
+@endpush
+
+<div x-data="crud(window.crudConfig)">
     <div class="w-full bg-white shadow-md rounded-md p-7">
         <div class="flex justify-between items-center">
             <span class="text-base font-bold text-slate-500">Data Pengguna</span>
             <button
                 type="button"
-                @click="addUser()"
+                @click="addItem()"
                 class="rounded-md bg-blue-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-blue-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700 m-1">
                 <i class="fa-solid fa-user-plus"></i><span class="ms-2 hidden md:inline-block">Tambah User</span>
             </button>
@@ -29,7 +48,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                        <template x-for="(user, index) in filteredUsers" :key="user.id">
+                        <template x-for="(user, index) in filteredItems" :key="user.id">
                             <tr class="hover:bg-slate-50">
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium">
                                     <div class="h-7 w-7 bg-green-600 text-white text-center flex justify-center items-center text-xl rounded font-black" x-text="index + 1"></div>
@@ -43,10 +62,10 @@
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium"><div x-text="user.position"></div></td>
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium"><div x-text="user.role"></div></td>
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium text-center">
-                                    <button @click="editUser(user)" class="rounded-md bg-green-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700 m-1">
+                                    <button @click="editItem(user)" class="rounded-md bg-green-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700 m-1">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-                                    <button @click="deleteUser(user.id)" class="rounded-md bg-red-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 mx-1">
+                                    <button @click="deleteItem(user.id)" class="rounded-md bg-red-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 mx-1">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </td>
@@ -72,19 +91,19 @@
                                 <div class="sm:col-span-12">
                                     <label for="name" class="block text-sm/6 font-medium text-gray-900">Nama</label>
                                     <div class="mt-1">
-                                        <input id="name" type="text" name="name" autocomplete="given-name" x-model="form.name" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" x-model="form.name" />
+                                        <input id="name" type="text" name="name" autocomplete="given-name" x-model="form.name" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
                                     </div>
                                 </div>
                                 <div class="sm:col-span-12">
                                     <label for="email" class="block text-sm/6 font-medium text-gray-900">Email</label>
                                     <div class="mt-1">
-                                        <input id="email" type="text" name="email" autocomplete="given-name" x-model="form.email" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" x-model="form.email" />
+                                        <input id="email" type="text" name="email" autocomplete="given-name" x-model="form.email" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
                                     </div>
                                 </div>
                                 <div class="sm:col-span-12">
                                     <label for="password" class="block text-sm/6 font-medium text-gray-900">Password</label>
                                     <div class="mt-1">
-                                        <input id="password" type="password" name="password" autocomplete="given-name" x-model="form.password" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" x-model="form.password" />
+                                        <input id="password" type="password" name="password" autocomplete="given-name" x-model="form.password" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
                                     </div>
                                 </div>
                                 <!-- Konfirmasi Password -->
@@ -102,7 +121,7 @@
                                 <div class="sm:col-span-12">
                                     <label for="position" class="block text-sm/6 font-medium text-gray-900">Jabatan</label>
                                     <div class="mt-1">
-                                        <input id="position" type="text" name="position" autocomplete="given-name" x-model="form.position" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" x-model="form.position" />
+                                        <input id="position" type="text" name="position" autocomplete="given-name" x-model="form.position" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
                                     </div>
                                 </div>
                                 <div class="sm:col-span-12">
@@ -129,7 +148,7 @@
                             </div>
                             
                             <div class="flex justify-end gap-2 mt-4">
-                                <button type="button" @click="closeModal" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
+                                <button type="button" @click="closeModal()" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
                                 <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" x-text="isEdit ? 'Update' : 'Simpan'"></button>
                             </div>
                         </form>
@@ -139,261 +158,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('userStore', {
-            search: ''
-        });
-    });
-
-    function userForm() {
-        return {
-            showModal: false,
-
-            form: {
-                name: '',
-                email: '',
-                password: '',
-                position: '',
-                role: '',
-                hod: '0',
-            },
-
-            confirmPassword: '',
-            users: @json($users),
-            isEdit: false,
-            editId: null,
-
-            // ===========================
-            // FILTER USER
-            // ===========================
-            get filteredUsers() {
-                if (!Array.isArray(this.users)) return [];
-
-                const keyword = (Alpine.store('userStore').search || '').toLowerCase();
-
-                return this.users.filter(user => {
-                    const name  = (user.name  || '').toLowerCase();
-                    const email = (user.email || '').toLowerCase();
-
-                    return name.includes(keyword) || email.includes(keyword);
-                });
-            },
-
-            // ===========================
-            // FORMAT TANGGAL
-            // ===========================
-            formatDate(dateStr) {
-                const date = new Date(dateStr);
-                const tanggal = date.toLocaleDateString('id-ID', {
-                    day: 'numeric', month: 'long', year: 'numeric'
-                });
-                const jam = date.toLocaleTimeString('id-ID', {
-                    hour: '2-digit', minute: '2-digit', hour12: false
-                });
-                return `${tanggal} ${jam}`;
-            },
-
-            // ===========================
-            // TAMBAH USER
-            // ===========================
-            addUser() {
-                this.resetForm();
-                this.isEdit = false;
-                this.showModal = true;
-            },
-
-            // ===========================
-            // EDIT USER
-            // ===========================
-            editUser(user) {
-                this.form.name = user.name;
-                this.form.email = user.email;
-                this.form.password = '';
-                this.form.position = user.position;
-                this.form.role = user.role;
-                this.form.hod = user.hod;
-                this.confirmPassword = '';
-                this.editId = user.id;
-                this.isEdit = true;
-                this.showModal = true;
-            },
-
-            // ===========================
-            // SUBMIT FORM (ADD & UPDATE)
-            // ===========================
-            async submitForm() {
-
-                if (!this.isEdit && this.form.password !== this.confirmPassword) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: 'Password dan konfirmasi tidak cocok!'
-                    });
-                    return;
-                }
-
-                const result = await Swal.fire({
-                    title: this.isEdit ? 'Update Data?' : 'Simpan Data?',
-                    text: 'Pastikan data sudah benar',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya',
-                    cancelButtonText: 'Batal'
-                });
-
-                if (!result.isConfirmed) return;
-
-                let url = '/users';
-                let method = 'POST';
-
-                if (this.isEdit) {
-                    url = `/users/${this.editId}`;
-                    method = 'PUT';
-                }
-
-                try {
-                    const response = await fetch(url, {
-                        method: method,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(this.form)
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) throw data;
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: data.message || 'Data berhasil disimpan'
-                    });
-
-                    this.closeModal();
-                    if (this.isEdit) {
-                        const index = this.users.findIndex(u => u.id === this.editId);
-                        if (index !== -1) {
-                            const updatedUser = data.user || data.data;
-
-                            const index = this.users.findIndex(u => u.id === this.editId);
-
-                            if (index !== -1) {
-                                // hapus dulu dari array
-                                this.users.splice(index, 1);
-
-                                // masukkan ulang sebagai object baru
-                                this.users.unshift({ ...updatedUser });
-                            }
-                        }
-                    } else {
-                        const newUser = data.user || data.data;
-                        this.users = [
-                            newUser,
-                            ...this.users.filter(u => u.id !== newUser.id)
-                        ];
-                    }
-
-                } catch (error) {
-
-                    let msg = 'Terjadi kesalahan';
-
-                    if (error?.errors) {
-                        msg = Object.values(error.errors)[0][0];
-                    }
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: msg
-                    });
-                }
-            },
-
-            // ===========================
-            // DELETE USER
-            // ===========================
-            async deleteUser(id) {
-
-                const result = await Swal.fire({
-                    title: 'Yakin hapus user?',
-                    text: 'Data yang dihapus tidak bisa dikembalikan!',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya, Hapus',
-                    cancelButtonText: 'Batal'
-                });
-
-                if (!result.isConfirmed) return;
-
-                try {
-                    const response = await fetch(`/users/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        }
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) throw data;
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil',
-                        text: data.message || 'User berhasil dihapus'
-                    });
-
-                    this.users = this.users.filter(u => u.id !== id);
-
-                } catch (error) {
-
-                    let msg = 'Gagal menghapus data';
-
-                    if (error?.errors) {
-                        msg = Object.values(error.errors)[0][0];
-                    }
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: msg
-                    });
-                }
-            },
-
-            // ===========================
-            // RESET FORM
-            // ===========================
-            resetForm() {
-                this.form = {
-                    name: '',
-                    email: '',
-                    password: '',
-                    position: '',
-                    role: '',
-                    hod: '0'
-                };
-
-                this.confirmPassword = '';
-                this.editId = null;
-                this.isEdit = false;
-            },
-
-            // ===========================
-            // TUTUP MODAL
-            // ===========================
-            closeModal() {
-                this.showModal = false;
-                this.resetForm();
-            },
-        }
-    }
-</script>
 
 @endsection
