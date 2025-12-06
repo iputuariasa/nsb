@@ -5,11 +5,19 @@
 
 @push('scripts')
 <script>
+    window.pageData = {
+        users: @json($users),
+        branches: @json($branches),
+        // tambah apa saja di sini, bebas!
+    };
+
     window.crudConfig = {
         module: 'User',
         route: '/users',
-        items: @json($users),
+        items: window.pageData.users,
+        branches: window.pageData.branches,
         fields: {
+            branch_id: '',
             name: '',
             email: '',
             password: '',
@@ -17,7 +25,8 @@
             role: '',
             hod: '0'
         },
-        passwordField: true
+        passwordField: true,
+        dataKey: 'user'
     };
 </script>
 @endpush
@@ -40,6 +49,7 @@
                     <thead>
                     <tr class="bg-slate-100">
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">No</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Kode CB</th>
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Email</th>
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Nama</th>
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Jabatan</th>
@@ -53,6 +63,7 @@
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium">
                                     <div class="h-7 w-7 bg-green-600 text-white text-center flex justify-center items-center text-xl rounded font-black" x-text="index + 1"></div>
                                 </td>
+                                <td class="px-6 py-3 border-b border-slate-200 text-sm font-semibold"><div x-text="user.branch?.branch_code || '-'"></div></td>
                                 <td class="px-6 py-3 border-b border-slate-200">
                                     <div class="flex items-center">
                                         <span class="text-sm font-medium" x-text="user.email"></span>
@@ -74,84 +85,129 @@
                     </tbody>
                 </table>
 
-                <!-- Modal -->
-                <div
-                    x-show="showModal"
+                <!-- MODAL — LEBIH LEBAR & DI TENGAH -->
+                <div x-show="showModal" 
                     x-cloak
-                    @keydown.escape.window="closeModal"
-                    class="fixed inset-0 z-99 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-                    <div
-                        @click.outside=""
-                        class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative" >
-                        <h2 class="text-lg font-bold mb-4" x-text="isEdit ? 'Edit User' : 'Tambah User'"></h2>
+                    class="fixed inset-0 z-99 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
+                    
+                    <div @click.outside="" 
+                        class="bg-white rounded-xl shadow-2xl w-full max-w-4xl my-8 mx-4 overflow-hidden">
+                        
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
+                            <h2 class="text-xl font-bold" x-text="isEdit ? 'Edit User' : 'Tambah User Baru'"></h2>
+                        </div>
 
-                        <form @submit.prevent="submitForm">
-                            @csrf
-                            <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-12">
-                                <div class="sm:col-span-12">
-                                    <label for="name" class="block text-sm/6 font-medium text-gray-900">Nama</label>
-                                    <div class="mt-1">
-                                        <input id="name" type="text" name="name" autocomplete="given-name" x-model="form.name" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                        <div class="p-6 max-h-[80vh] overflow-y-auto">
+                            <form @submit.prevent="submitForm" class="space-y-6">
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    
+                                    <!-- Nama -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
+                                        <input x-model="form.name" type="text" required
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                                     </div>
-                                </div>
-                                <div class="sm:col-span-12">
-                                    <label for="email" class="block text-sm/6 font-medium text-gray-900">Email</label>
-                                    <div class="mt-1">
-                                        <input id="email" type="text" name="email" autocomplete="given-name" x-model="form.email" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+
+                                    <!-- Email -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                                        <input x-model="form.email" type="email" required
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                                     </div>
-                                </div>
-                                <div class="sm:col-span-12">
-                                    <label for="password" class="block text-sm/6 font-medium text-gray-900">Password</label>
-                                    <div class="mt-1">
-                                        <input id="password" type="password" name="password" autocomplete="given-name" x-model="form.password" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+
+                                    <!-- PASSWORD BARU (Selalu muncul, tapi opsional saat edit) -->
+                                    <div class="md:col-span-2">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                            <span x-text="isEdit ? 'Password Baru (kosongkan jika tidak ingin ubah)' : 'Password'"></span>
+                                        </label>
+                                        <input x-model="form.password" type="password" 
+                                            :required="!isEdit"
+                                            placeholder=""
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                                     </div>
-                                </div>
-                                <!-- Konfirmasi Password -->
-                                <div class="sm:col-span-12">
-                                    <label for="confirmPassword" class="block text-sm/6 font-medium text-gray-900">Konfirmasi Password</label>
-                                    <div class="mt-1">
-                                        <input type="password" name="confirmPassword" id="confirmPassword" x-model="confirmPassword"
-                                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600">
-                                    </div>
-                                    <!-- Pesan error jika password tidak cocok -->
-                                    <template x-if="confirmPassword && confirmPassword !== form.password">
-                                        <p class="text-sm text-red-500 mt-1">Password tidak cocok</p>
+
+                                    <!-- KONFIRMASI PASSWORD (hanya muncul kalau password diisi) -->
+                                    <template x-if="form.password">
+                                        <div class="md:col-span-2">
+                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Konfirmasi Password Baru</label>
+                                            <div class="relative">
+                                                <input x-model="confirmPassword" type="password" required
+                                                    class="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:border-transparent transition pr-12"
+                                                    :class="{'border-red-500 focus:ring-red-500': confirmPassword && confirmPassword !== form.password,
+                                                                'border-gray-300 focus:ring-blue-500': !confirmPassword || confirmPassword === form.password}">
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                                    <i x-show="confirmPassword && confirmPassword === form.password" 
+                                                    class="fas fa-check text-green-500"></i>
+                                                    <i x-show="confirmPassword && confirmPassword !== form.password" 
+                                                    class="fas fa-times text-red-500"></i>
+                                                </div>
+                                            </div>
+                                            <p x-show="confirmPassword && confirmPassword !== form.password" 
+                                            class="text-red-500 text-xs mt-1">Password tidak cocok!</p>
+                                        </div>
                                     </template>
-                                </div>
-                                <div class="sm:col-span-12">
-                                    <label for="position" class="block text-sm/6 font-medium text-gray-900">Jabatan</label>
-                                    <div class="mt-1">
-                                        <input id="position" type="text" name="position" autocomplete="given-name" x-model="form.position" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+
+                                    <!-- Jabatan -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Jabatan</label>
+                                        <input x-model="form.position" type="text" required
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                                    </div>
+
+                                    <!-- Cabang -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Cabang</label>
+                                        <select x-model="form.branch_id" 
+                                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                                            <option value="">-- Pilih Cabang --</option>
+                                            <template x-for="branch in config.branches" :key="branch.id">
+                                                <option :value="branch.id" 
+                                                        x-text="`${branch.branch_code} - ${branch.branch_name}`"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+
+                                    <!-- Role -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Role</label>
+                                        <select x-model="form.role" required
+                                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                                            <option value="">-- Pilih Role --</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="reporter">Reporter</option>
+                                            <option value="credit">Credit</option>
+                                            <option value="ao">AO</option>
+                                            <option value="fo">FO</option>
+                                            <option value="ppk">PPK</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Kabid -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Kabid</label>
+                                        <select x-model="form.hod"
+                                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                                            <option value="0">Tidak</option>
+                                            <option value="1">Iya</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div class="sm:col-span-12">
-                                    <label for="role" class="block text-sm font-medium text-gray-900">Role</label>
-                                    <select id="role" name="role" x-model="form.role"
-                                        class="block w-full rounded-md bg-white px-3 py-1.5 text-sm text-gray-900 outline-1 outline-gray-300">
-                                        <option value="">-- Pilih Role --</option>
-                                            <option value="admin">admin</option>
-                                            <option value="reporter">reporter</option>
-                                            <option value="credit">credit</option>
-                                            <option value="ao">ao</option>
-                                            <option value="fo">fo</option>
-                                            <option value="ppk">ppk</option>
-                                    </select>
+
+                                <!-- Tombol -->
+                                <div class="flex flex-col sm:flex-row gap-3 justify-end pt-6 border-t border-gray-200 mt-6">
+                                    <button type="button" @click="closeModal()"
+                                            class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition font-medium">
+                                        Batal
+                                    </button>
+                                    <button type="submit"
+                                            class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition font-semibold shadow-lg">
+                                        <span x-text="isEdit ? 'Update User' : 'Simpan User'"></span>
+                                    </button>
                                 </div>
-                                <div class="sm:col-span-12">
-                                    <label for="hod" class="block text-sm font-medium text-gray-900">Kabid</label>
-                                    <select id="hod" name="hod" x-model="form.hod"
-                                        class="block w-full rounded-md bg-white px-3 py-1.5 text-sm text-gray-900 outline-1 outline-gray-300">
-                                        <option value="0">Tidak</option>
-                                        <option value="1">Iya</option>
-                                    </select>
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-end gap-2 mt-4">
-                                <button type="button" @click="closeModal()" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
-                                <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" x-text="isEdit ? 'Update' : 'Simpan'"></button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

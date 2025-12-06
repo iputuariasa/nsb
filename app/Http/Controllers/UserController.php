@@ -16,7 +16,7 @@ class UserController extends Controller
     {
         $title = 'Data Pengguna';
         $branches = Branch::all();
-        $users = User::latest()->get();
+        $users = User::with('branch')->get();
         return view('admin.users.index', compact('users','branches','title'));
     }
 
@@ -34,6 +34,7 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'branch_id' => 'required',
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
@@ -44,7 +45,7 @@ class UserController extends Controller
 
         $data['password'] = bcrypt($data['password']);
         $user = User::create($data);
-
+        $user->load('branch');
         return response()->json([
             'message' => 'Data berhasil disimpan',
             'user' => $user
@@ -75,6 +76,7 @@ class UserController extends Controller
         $user = User::findOrFail($user->id);
 
         $data = $request->validate([
+            'branch_id' => 'required',
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'position' => 'required',
@@ -87,6 +89,7 @@ class UserController extends Controller
         }
 
         $user->update($data);
+        $user->load('branch');
 
         return response()->json([
             'message' => 'Data berhasil diupdate',

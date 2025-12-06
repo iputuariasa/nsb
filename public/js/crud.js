@@ -1,7 +1,4 @@
-// public/js/crud.js
 document.addEventListener('alpine:init', () => {
-
-    // Komponen CRUD generik
     Alpine.data('crud', function (config = {}) {
         return {
             config: {
@@ -10,6 +7,7 @@ document.addEventListener('alpine:init', () => {
                 items: [],
                 fields: {},
                 passwordField: false,
+                dataKey: 'data', // bisa diganti jadi 'user', 'branch', dll kalau perlu
                 ...config
             },
 
@@ -21,39 +19,17 @@ document.addEventListener('alpine:init', () => {
             filteredItems: [],
 
             init() {
-                // Salin semua data ke filteredItems saat pertama kali
                 this.filteredItems = [...this.config.items];
-
-                // Watch perubahan query dari global store, lalu update filteredItems
-                this.$watch('$store.globalSearch.query', (value) => {
-                    const keyword = (value || '').toLowerCase().trim();
-                    if (!keyword) {
-                        this.filteredItems = [...this.config.items];
-                        return;
-                    }
-
-                    this.filteredItems = this.config.items.filter(item => {
-                        return Object.values(item).some(val => {
-                            if (val === null || val === undefined) return false;
-                            return String(val).toLowerCase().includes(keyword);
-                        });
-                    });
-                });
-
+                this.$watch('$store.globalSearch.query', () => this._refreshFilteredItems());
                 this.resetForm();
             },
 
-            formatDate(dateStr) {
-                if (!dateStr) return '-';
-                const date = new Date(dateStr);
-                return date.toLocaleDateString('id-ID', {
-                    day: 'numeric', month: 'long', year: 'numeric'
-                }) + ' ' + date.toLocaleTimeString('id-ID', {
-                    hour: '2-digit', minute: '2-digit'
-                });
+            addItem() {
+                this.isEdit = false;
+                this.resetForm();
+                this.showModal = true;
             },
 
-            addItem() { this.isEdit = false; this.resetForm(); this.showModal = true; },
             editItem(item) {
                 this.form = { ...item };
                 this.editId = item.id;
@@ -63,6 +39,7 @@ document.addEventListener('alpine:init', () => {
             },
 
             async submitForm() {
+                // Validasi password
                 if (!this.isEdit && this.config.passwordField && this.form.password !== this.confirmPassword) {
                     Swal.fire('Error', 'Password dan konfirmasi tidak cocok!', 'error');
                     return;
@@ -78,46 +55,57 @@ document.addEventListener('alpine:init', () => {
                 if (!result.isConfirmed) return;
 
                 const url = this.isEdit ? `${this.config.route}/${this.editId}` : this.config.route;
-                const method = this.isEdit ? 'PUT' : 'POST';
+                let method = this.isEdit ? 'PUT' : 'POST';
+
+                // Spoofing untuk web routes (Laravel hanya terima POST)
+                const actualMethod = method === 'PUT' ? 'POST' : method;
 
                 try {
                     const response = await fetch(url, {
-                        method,
+                        method: actualMethod,
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: JSON.stringify(this.form)
+                        body: JSON.stringify({
+                            ...this.form,
+                            _method: method === 'PUT' ? 'PUT' : undefined
+                        })
                     });
 
                     const data = await response.json();
-                    if (!response.ok) throw data;
 
-                    Swal.fire('Success', data.message || 'Berhasil disimpan', 'success');
+                    if (!response.ok) {
+                        const msg = data.message || data.errors ? Object.values(data.errors)[0][0] : 'Terjadi kesalahan';
+                        throw new Error(msg);
+                    }
+
+                    Swal.fire('Success!', data.message || 'Berhasil disimpan', 'success');
+
+                    // Ambil data dari response (bisa 'branch', 'user', 'data', dll)
+                    const returnedItem = data[this.config.dataKey] || data.data || data;
 
                     if (this.isEdit) {
                         const idx = this.config.items.findIndex(i => i.id === this.editId);
-                        if (idx !== -1) {
-                            this.config.items[idx] = data.user || data.data || data;
-                        }
+                        if (idx !== -1) this.config.items[idx] = returnedItem;
                     } else {
-                        this.config.items.unshift(data.user || data.data || data);
+                        this.config.items.unshift(returnedItem);
                     }
 
-                    // TAMBAHKAN BARIS INI — SUPAYA filteredItems IKUT UPDATE
                     this._refreshFilteredItems();
-
                     this.closeModal();
+
                 } catch (err) {
-                    const msg = err?.errors ? Object.values(err.errors)[0][0] : err?.message || 'Terjadi kesalahan';
-                    Swal.fire('Gagal', msg, 'error');
+                    Swal.fire('Gagal', err.message || 'Terjadi kesalahan', 'error');
                 }
             },
 
             async deleteItem(id) {
                 const res = await Swal.fire({
-                    title: 'Yakin hapus?',
+                    title: 'Yakin hapus data ini?',
+                    text: 'Data yang dihapus tidak dapat dikembalikan!',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Ya, Hapus',
@@ -127,16 +115,22 @@ document.addEventListener('alpine:init', () => {
 
                 try {
                     const response = await fetch(`${this.config.route}/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ _method: 'DELETE' })
                     });
+
                     const data = await response.json();
-                    if (!response.ok) throw data;
+
+                    if (!response.ok) throw new Error(data.message || 'Gagal menghapus');
 
                     this.config.items = this.config.items.filter(i => i.id !== id);
                     this._refreshFilteredItems();
 
-                    Swal.fire('Deleted!', data.message || 'Data terhapus', 'success');
+                    Swal.fire('Terhapus!', data.message || 'Data berhasil dihapus', 'success');
                 } catch (err) {
                     Swal.fire('Error', err.message || 'Gagal menghapus', 'error');
                 }
@@ -159,14 +153,13 @@ document.addEventListener('alpine:init', () => {
                 if (!keyword) {
                     this.filteredItems = [...this.config.items];
                 } else {
-                    this.filteredItems = this.config.items.filter(item => {
-                        return Object.values(item).some(val => {
-                            if (val === null || val === undefined) return false;
-                            return String(val).toLowerCase().includes(keyword);
-                        });
-                    });
+                    this.filteredItems = this.config.items.filter(item =>
+                        Object.values(item).some(val =>
+                            val !== null && val !== undefined && String(val).toLowerCase().includes(keyword)
+                        )
+                    );
                 }
-            },
+            }
         };
     });
 });

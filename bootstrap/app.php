@@ -11,7 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        // Register alias middleware kamu di sini
+        $middleware->alias([
+            'admin'      => \App\Http\Middleware\Admin::class,
+        ]);
+
+        // Kalau mau ganti redirect kalau unauthenticated
+        $middleware->redirectGuestsTo('/login');
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

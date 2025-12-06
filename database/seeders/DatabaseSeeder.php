@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(BranchSeeder::class);
 
         User::create([
+            'branch_id' => 1,
             'email' => 'nsbtgl@gmail.com',
             'password' => bcrypt('admin'),
             'name' => 'IT Pusat',

@@ -15,10 +15,10 @@
           <span class="ml-2">Dashboard</span>
         </a>
       </li>
-      <li x-data="{ open: {{ Request::is('master*') || Request::is('users*') ? 'true' : 'false' }} }">
+      <li x-data="{ open: {{ Request::is('master*') || Request::is('users*') || Request::is('branches*') ? 'true' : 'false' }} }">
           <button 
               @click="open = !open" 
-              class="{{ Request::is('master*') || Request::is('users*') ? 'active' : '' }} 
+              class="{{ Request::is('master*') || Request::is('users*') || Request::is('branches*') ? 'active' : '' }} 
               flex items-center justify-between px-4 py-2 w-full rounded-lg transition hover:bg-gray-200">
 
               <div class="flex items-center">
@@ -44,6 +44,15 @@
                       
                       <i class="fas fa-users text-orange-500 w-6"></i>
                       <span class="ml-2">Data Users</span>
+                  </a>
+              </li>
+              <li>
+                  <a 
+                      href="/branches" 
+                      class="{{ Request::is('branches*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
+                      
+                      <i class="fa-solid fa-code-branch text-orange-500 w-6"></i>
+                      <span class="ml-2">Data Cabang</span>
                   </a>
               </li>
           </ul>
