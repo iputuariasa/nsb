@@ -17,78 +17,17 @@
 </head>
 <body class="m-0 font-sans text-base antialiased bg-gray-50 text-slate-500">
   <div class="absolute w-full bg-blue-500 min-h-75"></div>
-  
-  <!-- Sidebar -->
   @include('admin.layouts.sidebar')
-
   <main class="ease-soft-in-out xl:ml-68.5 pt-20 relative h-full max-h-screen rounded-xl transition-all duration-200">
     @include('admin.layouts.navbar')
-
-
-
     <section class="w-full px-4 py-5 mx-auto">
       @yield('container')
     </section>
   </main>
-  <script>
-      document.addEventListener('alpine:init', () => {
-          Alpine.store('globalSearch', {
-              query: '',
-              // optional: tambah debounce biar nggak lag saat ketik cepat
-              set(value) {
-                  this.query = value;
-              }
-          });
-      });
-  </script>
+
+  <script src="{{ asset('js/search.js') }}"></script>
   <script src="{{ asset('js/crud.js') }}"></script>
-  <script>
-    document.getElementById("menuToggle").addEventListener("click", function () {
-    let sidebar = document.getElementById("sidebar");
-    let menuIcon = document.getElementById("menuIcon");
-
-    sidebar.classList.toggle("openSidebar");
-    sidebar.classList.toggle("-translate-x-full");
-
-    // Ubah ikon dengan animasi
-    if (sidebar.classList.contains("openSidebar")) {
-        menuIcon.classList.replace("fa-bars", "fa-times"); // Ubah ikon ke "X"
-    } else {
-        menuIcon.classList.replace("fa-times", "fa-bars"); // Kembali ke ikon menu
-    }
-
-    // Tambahkan efek rotasi pada ikon
-    menuIcon.classList.toggle("rotate-icon");
-    });
-
-    function clock() {
-        return {
-            time: '',
-            start() {
-                this.update();
-                setInterval(() => this.update(), 1000);
-            },
-            update() {
-                const now = new Date();
-
-                const tanggal = now.toLocaleDateString('id-ID', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-
-                const jam = now.toLocaleTimeString('id-ID', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-
-                this.time = `${tanggal} ${jam}`;
-            }
-        }
-    }
-  </script>
+  <script src="{{ asset('js/script.js') }}"></script>
   @stack('scripts')
 </body>
 </html>
