@@ -115,24 +115,33 @@ document.addEventListener('alpine:init', () => {
 
                 try {
                     const response = await fetch(`${this.config.route}/${id}`, {
-                        method: 'POST',
+                        method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({ _method: 'DELETE' })
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
                     });
 
-                    const data = await response.json();
+                    let data = {};
+                    const text = await response.text();
+                    try {
+                        data = text ? JSON.parse(text) : {};
+                    } catch (e) {
+                        data = { message: 'Data berhasil dihapus' };
+                    }
 
-                    if (!response.ok) throw new Error(data.message || 'Gagal menghapus');
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Gagal menghapus');
+                    }
 
                     this.config.items = this.config.items.filter(i => i.id !== id);
                     this._refreshFilteredItems();
 
                     Swal.fire('Terhapus!', data.message || 'Data berhasil dihapus', 'success');
                 } catch (err) {
-                    Swal.fire('Error', err.message || 'Gagal menghapus', 'error');
+                    console.error('Delete error:', err);
+                    Swal.fire('Error', err.message || 'Gagal menghapus data', 'error');
                 }
             },
 

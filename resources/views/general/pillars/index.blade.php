@@ -6,21 +6,18 @@
 @push('scripts')
 <script>
     window.pageData = {
-        branches: @json($branches),
+        pillars: @json($pillars),
     };
 
     window.crudConfig = {
-        module: 'Branch',
-        route: '/branches',
-        items: window.pageData.branches,
+        module: 'Pillar',
+        route: '/pillars',
+        items: window.pageData.pillars,
         fields: {
-            central_code: '',
-            branch_code: '',
-            central_name: '',
-            branch_name: ''
+            name: '',
         },
         passwordField: false,
-        dataKey: 'branch'
+        dataKey: 'pillar'
     };
 </script>
 @endpush
@@ -43,28 +40,22 @@
                     <thead>
                     <tr class="bg-slate-100">
                         <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">No</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Kode Pusat</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Kode Cabang</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Pusat</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Cabang</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider border-b border-slate-300">Nama Pilar</th>
                         <th class="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider border-b border-slate-300">Aksi</th>
                     </tr>
                     </thead>
                     <tbody>
-                        <template x-for="(branch, index) in filteredItems" :key="branch.id">
+                        <template x-for="(pillar, index) in filteredItems" :key="pillar.id">
                             <tr class="hover:bg-slate-50">
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium">
                                     <div class="h-7 w-7 bg-green-600 text-white text-center flex justify-center items-center text-xl rounded font-black" x-text="index + 1"></div>
                                 </td>
-                                <td class="px-6 py-3 border-b border-slate-200 text-sm font-semibold"><div x-text="branch.central_code"></div></td>
-                                <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium"><div x-text="branch.branch_code"></div></td>
-                                <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium"><div x-text="branch.central_name"></div></td>
-                                <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium"><div x-text="branch.branch_name"></div></td>
+                                <td class="px-6 py-3 border-b border-slate-200 text-sm font-semibold"><div x-text="pillar.name"></div></td>
                                 <td class="px-6 py-3 border-b border-slate-200 text-sm font-medium text-center">
-                                    <button @click="editItem(branch)" class="rounded-md bg-green-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700 m-1">
+                                    <button @click="editItem(pillar)" class="rounded-md bg-green-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700 m-1">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-                                    <button @click="deleteItem(branch.id)" class="rounded-md bg-red-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 mx-1">
+                                    <button @click="deleteItem(pillar.id)" class="rounded-md bg-red-500 px-3 py-1 text-sm font-semibold text-white shadow-xs hover:bg-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 mx-1">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </td>
@@ -83,42 +74,20 @@
                         
                         <!-- Header -->
                         <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
-                            <h2 class="text-xl font-bold" x-text="isEdit ? 'Edit Cabang' : 'Tambah Cabang Baru'"></h2>
+                            <h2 class="text-xl font-bold" x-text="isEdit ? 'Edit Pilar' : 'Tambah Pilar Baru'"></h2>
                         </div>
 
                         <div class="p-6 max-h-[80vh] overflow-y-auto">
                             <form @submit.prevent="submitForm" class="space-y-6">
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
                                     
-                                    <!-- Kode Pusat -->
+                                    <!-- Nama Pilar -->
                                     <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Kode Pusat</label>
-                                        <input x-model="form.central_code" type="text" required
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Pilar</label>
+                                        <input x-model="form.name" type="text" required
                                             class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                                     </div>
-
-                                    <!-- Kode Cabang -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Kode Cabang</label>
-                                        <input x-model="form.branch_code" type="text" required
-                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                                    </div>
-
-                                    <!-- Nama Pusat -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Pusat</label>
-                                        <input x-model="form.central_name" type="text" required
-                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                                    </div>
-
-                                    <!-- Nama Cabang -->
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Cabang</label>
-                                        <input x-model="form.branch_name" type="text" required
-                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                                    </div>
-
                                 </div>
 
                                 <!-- Tombol -->
@@ -129,7 +98,7 @@
                                     </button>
                                     <button type="submit"
                                             class="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition font-semibold shadow-lg">
-                                        <span x-text="isEdit ? 'Update Cabang' : 'Simpan Cabang'"></span>
+                                        <span x-text="isEdit ? 'Update Pilar' : 'Simpan Pilar'"></span>
                                     </button>
                                 </div>
                             </form>

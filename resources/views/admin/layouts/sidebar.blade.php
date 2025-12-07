@@ -15,10 +15,10 @@
           <span class="ml-2">Dashboard</span>
         </a>
       </li>
-      <li x-data="{ open: {{ Request::is('master*') || Request::is('users*') || Request::is('branches*') ? 'true' : 'false' }} }">
+      <li x-data="{ open: {{ Request::is('master*') || Request::is('users*') || Request::is('branches*') || Request::is('pillars*') ? 'true' : 'false' }} }">
           <button 
               @click="open = !open" 
-              class="{{ Request::is('master*') || Request::is('users*') || Request::is('branches*') ? 'active' : '' }} 
+              class="{{ Request::is('master*') || Request::is('users*') || Request::is('branches*') || Request::is('pillars*') ? 'active' : '' }} 
               flex items-center justify-between px-4 py-2 w-full rounded-lg transition hover:bg-gray-200">
 
               <div class="flex items-center">
@@ -55,6 +55,17 @@
                       <span class="ml-2">Data Cabang</span>
                   </a>
               </li>
+              @if (Auth::user()->role == "credit" || "admin")
+                <li>
+                    <a 
+                        href="/pillars" 
+                        class="{{ Request::is('pillars*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
+                        
+                        <i class="fa-solid fa-layer-group text-orange-500 w-6"></i>
+                        <span class="ml-2">Data Pilar</span>
+                    </a>
+                </li>
+              @endif
           </ul>
       </li>
 

@@ -23,6 +23,7 @@
     <section class="w-full px-4 py-5 mx-auto">
       @yield('container')
     </section>
+    @include('admin.layouts.alert')
   </main>
 
   <script src="{{ asset('js/search.js') }}"></script>

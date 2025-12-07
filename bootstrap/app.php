@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register alias middleware kamu di sini
         $middleware->alias([
             'admin'      => \App\Http\Middleware\Admin::class,
+            'credit'     => \App\Http\Middleware\Credit::class,
+            'allow.admin.credit' => \App\Http\Middleware\AllowAdminOrCredit::class,
         ]);
 
         // Kalau mau ganti redirect kalau unauthenticated
