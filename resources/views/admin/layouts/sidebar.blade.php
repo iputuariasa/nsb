@@ -75,11 +75,52 @@
           <span class="ml-2">Database</span>
         </a>
       </li>
-      <li>
-        <a href="#" class="flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
-          <i class="fa-solid fa-credit-card text-green-500 w-6"></i>
-          <span class="ml-2">Data Kredit</span>
-        </a>
+      <li x-data="{ open: {{ Request::is('loans*') || Request::is('loan_reports*') ? 'true' : 'false' }} }">
+          <button 
+              @click="open = !open" 
+              class="{{ Request::is('loans*') || Request::is('loan_register*') ? 'active' : '' }} 
+              flex items-center justify-between px-4 py-2 w-full rounded-lg transition hover:bg-gray-200">
+
+              <div class="flex items-center">
+                  <i class="fa-solid fa-credit-card text-green-500 w-6 -ml-1"></i>
+                  <span class="ml-3">Data Kredit</span>
+              </div>
+
+              <i 
+                  :class="open ? 'rotate-90' : ''" 
+                  class="fas fa-chevron-right transition-transform duration-300">
+              </i>
+          </button>
+
+          <ul 
+              x-show="open" 
+              x-transition
+              class="pl-6 space-y-2 rounded-lg overflow-hidden mt-2"
+          >
+              @if (Auth::user()->role == "credit" || "admin")
+                <li>
+                    <a 
+                        href="/loans" 
+                        class="{{ Request::is('loans*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
+                        
+                        <i class="fa-solid fa-list text-orange-500 w-6"></i>
+                        <span class="ml-2">Register Kredit</span>
+                    </a>
+                </li>
+              @endif
+
+              @if (Auth::user()->role == "credit" || "admin")
+                <li>
+                    <a 
+                        href="/loan_reports" 
+                        class="{{ Request::is('loan_reports*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
+                        
+                        <i class="fa-solid fa-file-lines text-orange-500 w-6"></i>
+                        <span class="ml-2">Laporan Kredit</span>
+                    </a>
+                </li>
+              @endif
+          </ul>
       </li>
       <li>
         <a href="#" class="flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">

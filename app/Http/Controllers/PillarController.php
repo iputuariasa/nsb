@@ -14,7 +14,7 @@ class PillarController extends Controller
     {
         $title = 'Data Pilar';
         $pillars = Pillar::all();
-        return view('general.pillars.index', compact('pillars','title'));
+        return view('loans.pillars.index', compact('pillars','title'));
     }
 
     /**

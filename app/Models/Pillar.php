@@ -10,4 +10,9 @@ class Pillar extends Model
     /** @use HasFactory<\Database\Factories\PillarFactory> */
     use HasFactory;
     protected $guarded = ['id'];
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
 }

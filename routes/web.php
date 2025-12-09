@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LoanController;
 use App\Http\Controllers\PillarController;
 
 Route::middleware(['guest'])->group(function(){
@@ -24,4 +25,5 @@ Route::middleware(['admin'])->group(function(){
 
 Route::middleware(['allow.admin.credit'])->group(function(){
     Route::resource('pillars', PillarController::class);
+    Route::resource('loans', LoanController::class);
 });
