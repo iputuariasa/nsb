@@ -42,4 +42,4 @@ document.getElementById("menuToggle").addEventListener("click", function () {
                 this.time = `${tanggal} ${jam}`;
             }
         }
-    }
+    };

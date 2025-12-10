@@ -26,6 +26,7 @@ return new class extends Migration
             $table->foreignId('region_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->string('survey_number')->nullable();
             // Hasil pencairan
+            $table->decimal('proposal', 18, 2)->nullable();
             $table->decimal('disbursed_amount', 18, 2)->nullable();
             $table->decimal('principal_repayment', 18, 2)->default(0);
             $table->decimal('net_disbursement', 18, 2)->nullable();

@@ -26,6 +26,7 @@ class LoanController extends Controller
             'ao',           // ← nama AO (ao_id → User)
             'reference',     // ← nama yang ngajuin (reference_id → User)
             'pillar',       // ← nama pillar (pillar_id → Pillar)
+            'region',
             'histories.user', // ← biar timeline bisa tampilkan siapa yang ubah status
         ])
         ->latest()           // optional: urutkan dari yang terbaru

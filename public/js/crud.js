@@ -168,7 +168,17 @@ document.addEventListener('alpine:init', () => {
                         )
                     );
                 }
-            }
+            },
+
+            formatRupiah(angka, prefix = 'Rp ') {
+                if (!angka && angka !== 0) return '-';
+                
+                // Konversi ke integer langsung
+                const nilai = parseInt(angka, 10);
+                if (isNaN(nilai)) return '-';
+
+                return prefix + nilai.toLocaleString('id-ID');
+            },
         };
     });
 });
