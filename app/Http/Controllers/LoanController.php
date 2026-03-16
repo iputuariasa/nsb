@@ -16,29 +16,32 @@ class LoanController extends Controller
      */
     public function index()
     {
-        $title    = 'Data Kredit';
-        $branches = Branch::all();           // kalau kamu pakai branch
-        $users    = User::all();             // untuk dropdown AO / Referrer
-        $pillars  = Pillar::all();           // untuk dropdown sumber data
+        $title = 'Data Kredit';
 
-        // EAGER LOADING YANG BENAR
-        $loans = Loan::with([
-            'ao',           // ← nama AO (ao_id → User)
-            'reference',     // ← nama yang ngajuin (reference_id → User)
-            'pillar',       // ← nama pillar (pillar_id → Pillar)
-            'region',
-            'histories.user', // ← biar timeline bisa tampilkan siapa yang ubah status
-        ])
-        ->latest()           // optional: urutkan dari yang terbaru
-        ->get();
+        $query = Loan::with(['ao', 'reference', 'pillar', 'region', 'histories.user']);
+
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('customer_name', 'like', "%{$search}%")
+                ->orWhere('address', 'like', "%{$search}%")
+                ->orWhere('phone_number', 'like', "%{$search}%")
+                ->orWhere('application_date', 'like', "%{$search}%")
+                ->orWhere('status', 'like', "%{$search}%");
+                // tambah field lain kalau perlu
+            });
+        }
+
+        $loans = $query->orderBy('id', 'desc')->paginate(100);
+
+        $branches = Branch::all();
+        $users = User::all();
+        $pillars = Pillar::all();
+        $ao = User::all();
 
         return view('loans.registers.index', compact(
-            'loans',
-            'branches',
-            'title',
-            'users',
-            'pillars'
-        ));
+            'loans', 'branches', 'title', 'users', 'pillars','ao'
+        ))->with('loansCollection', $loans->getCollection());
     }
 
     /**

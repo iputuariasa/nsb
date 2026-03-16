@@ -5,21 +5,28 @@
 
 @push('scripts')
 <script>
+    window.paginationInfo = {
+        currentPage: {{ $loans->currentPage() }},
+        perPage: {{ $loans->perPage() }}
+    };
+
     window.pageData = {
         users: @json($users),
         branches: @json($branches),
         pillars: @json($pillars),
-        loans: @json($loans),
+        loans: @json($loansCollection),
+        ao: @json($ao),
         // tambah apa saja di sini, bebas!
     };
 
     window.crudConfig = {
-        module: 'User',
-        route: '/users',
+        module: 'Loan',
+        route: '/loans',
         items: window.pageData.loans,
         branches: window.pageData.branches,
         pillars: window.pageData.pillars,
         users: window.pageData.users,
+        ao: window.pageData.ao,
 
         fields: {
             created_by: '',
@@ -52,6 +59,16 @@
     <div class="w-full bg-white shadow-md rounded-md p-7">
         <div class="flex justify-between items-center">
             <h1 class="text-base font-bold text-slate-500">{{$title}}</h1>
+            <div>
+                <form action="{{ route('loans.index') }}" method="GET" class="flex gap-2">
+                    <input type="text" name="search" value="{{ request('search') }}" 
+                        placeholder="Cari nama, alamat, telp, dll..." 
+                        class="w-full lg:w-96 pl-5 pr-5 py-1 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                    <button type="submit" class="bg-blue-500 text-white py-1 px-4 rounded-lg hover:bg-blue-600">
+                        Cari
+                    </button>
+                </form>
+            </div>
             <button
                 type="button"
                 @click="addItem()"
@@ -96,7 +113,7 @@
                         <tr class="hover:bg-gray-50 transition">
                             <!-- NO — FIXED KIRI -->
                             <td class="px-6 py-4 text-center font-bold bg-white sticky left-0 z-10">
-                                <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-black" x-text="index + 1">   
+                                <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-black" x-text="(window.paginationInfo.currentPage - 1) * window.paginationInfo.perPage + index + 1">   
                                 </div>
                             </td>
                             <!-- AKSI — FIXED KIRI -->
@@ -147,6 +164,9 @@
                     </template>
                 </tbody>
             </table>
+            <div class="mt-8 flex justify-center">
+                {{ $loans->links('pagination::tailwind') }}
+            </div>
 
             <!-- Empty State -->
             <div x-show="filteredItems.length === 0" class="text-center py-20 text-gray-500">
@@ -161,108 +181,107 @@
         class="fixed inset-0 z-99 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
         
         <div @click.outside="" 
-            class="bg-white rounded-xl shadow-2xl w-full max-w-4xl my-8 mx-4 overflow-hidden">
+            class="bg-white rounded-xl shadow-2xl w-full max-w-7xl my-8 mx-4 overflow-hidden">
             
             <!-- Header -->
             <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4">
-                <h2 class="text-xl font-bold" x-text="isEdit ? 'Edit User' : 'Tambah User Baru'"></h2>
+                <h2 class="text-xl font-bold" x-text="isEdit ? 'Edit Kredit' : 'Tambah Kredit Baru'"></h2>
             </div>
 
             <div class="p-6 max-h-[80vh] overflow-y-auto">
                 <form @submit.prevent="submitForm" class="space-y-6">
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
-                        <!-- Nama -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <!-- Sumber Data -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
-                            <input x-model="form.name" type="text" required
-                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                        </div>
-
-                        <!-- Email -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                            <input x-model="form.email" type="email" required
-                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                        </div>
-
-                        <!-- PASSWORD BARU (Selalu muncul, tapi opsional saat edit) -->
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                <span x-text="isEdit ? 'Password Baru (kosongkan jika tidak ingin ubah)' : 'Password'"></span>
-                            </label>
-                            <input x-model="form.password" type="password" 
-                                :required="!isEdit"
-                                placeholder=""
-                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                        </div>
-
-                        <!-- KONFIRMASI PASSWORD (hanya muncul kalau password diisi) -->
-                        <template x-if="form.password">
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Konfirmasi Password Baru</label>
-                                <div class="relative">
-                                    <input x-model="confirmPassword" type="password" required
-                                        class="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:border-transparent transition pr-12"
-                                        :class="{'border-red-500 focus:ring-red-500': confirmPassword && confirmPassword !== form.password,
-                                                    'border-gray-300 focus:ring-blue-500': !confirmPassword || confirmPassword === form.password}">
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                        <i x-show="confirmPassword && confirmPassword === form.password" 
-                                        class="fas fa-check text-green-500"></i>
-                                        <i x-show="confirmPassword && confirmPassword !== form.password" 
-                                        class="fas fa-times text-red-500"></i>
-                                    </div>
-                                </div>
-                                <p x-show="confirmPassword && confirmPassword !== form.password" 
-                                class="text-red-500 text-xs mt-1">Password tidak cocok!</p>
-                            </div>
-                        </template>
-
-                        <!-- Jabatan -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jabatan</label>
-                            <input x-model="form.position" type="text" required
-                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                        </div>
-
-                        <!-- Cabang -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Cabang</label>
-                            <select x-model="form.branch_id" 
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Sumber Data</label>
+                            <select x-model="form.pillar_id" 
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                                <option value="">-- Pilih Cabang --</option>
-                                <template x-for="branch in config.branches" :key="branch.id">
-                                    <option :value="branch.id" 
-                                            x-text="`${branch.branch_code} - ${branch.branch_name}`"></option>
+                                <option value="">-- Pilih Sumber Data --</option>
+                                <template x-for="pillar in config.pillars" :key="pillar.id">
+                                    <option :value="pillar.id" 
+                                            x-text="`${pillar.name}`"></option>
+                                </template>
+                            </select>
+                        </div>
+                        
+                        <!-- Nama Nasabah -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Nasabah</label>
+                            <input x-model="form.customer_name" type="text" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+
+                        <!-- Nomer Telepon -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nomer Telepon</label>
+                            <input x-model="form.phone_number" type="text" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+
+                        {{-- Alamat Nasabah --}}
+                        <div class="">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Alamat</label>
+                            <input x-model="form.address" type="text" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+
+                    </div>
+
+                    <hr class="h-[1px] w-full border-none bg-gradient-to-r from-transparent via-slate-400 to-transparent opacity-40">
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <!-- Tanggal Permohonan -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tanggal Permohonan</label>
+                            <input x-model="form.application_date" type="date" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+
+                        <!-- Nominal Permohonan -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nominal Permohonan</label>
+                            <input x-model="form.requested_amount" type="number" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+
+                        <!-- Jangka Waktu -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Jangka Waktu</label>
+                            <input x-model="form.tenor_months" type="number" required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" placeholder="Bulan">
+                        </div>
+
+                        <!-- Referensi -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Referensi</label>
+                            <select x-model="form.reference_id" 
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                                <option value="">-- Pilih Referensi --</option>
+                                <template x-for="user in config.users" :key="user.id">
+                                    <option :value="user.id" 
+                                            x-text="`${user.name}`"></option>
                                 </template>
                             </select>
                         </div>
 
-                        <!-- Role -->
+                        {{-- Status --}}
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Role</label>
-                            <select x-model="form.role" required
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                            <select x-model="form.status"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                                <option value="">-- Pilih Role --</option>
-                                <option value="admin">Admin</option>
-                                <option value="reporter">Reporter</option>
-                                <option value="credit">Credit</option>
-                                <option value="ao">AO</option>
-                                <option value="fo">FO</option>
-                                <option value="ppk">PPK</option>
+                                <option value="Register">Register</option>
+                                <option value="Proses">Proses</option>
+                                <option value="Proposal">Proposal</option>
+                                <option value="Persetujuan">Persetujuan</option>
+                                <option value="Droping">Droping</option>
+                                <option value="Tolak">Tolak</option>
+                                <option value="Batal">Batal</option>
+                                <option value="Tunda">Tunda</option>
                             </select>
                         </div>
 
-                        <!-- Kabid -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Kabid</label>
-                            <select x-model="form.hod"
-                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                                <option value="0">Tidak</option>
-                                <option value="1">Iya</option>
-                            </select>
-                        </div>
+
                     </div>
 
                     <!-- Tombol -->

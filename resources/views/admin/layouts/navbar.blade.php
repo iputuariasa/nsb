@@ -37,36 +37,38 @@
       <div class="relative flex items-center space-x-3">
         <!-- Search (Desktop) -->
         <!-- PAKAI INI DI navbar.blade.php — PASTI JALAN -->
-        <div class="hidden lg:flex items-center relative w-64" x-data>
-            <span class="absolute left-3 flex h-full items-center text-slate-500 pointer-events-none">
-                <i class="fas fa-search"></i>
-            </span>
+        @if (!Request::is('loans*'))
+          <div class="hidden lg:flex items-center relative w-64" x-data>
+              <span class="absolute left-3 flex h-full items-center text-slate-500 pointer-events-none">
+                  <i class="fas fa-search"></i>
+              </span>
 
-            <input
-                type="text"
-                placeholder="Cari data..."
-                class="w-full pl-10 pr-10 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
-                autocomplete="off"
+              <input
+                  type="text"
+                  placeholder="Cari data..."
+                  class="w-full pl-10 pr-10 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                  autocomplete="off"
 
-                x-init="
-                    $el.value = $store.globalSearch.query;
-                    $el.addEventListener('input', (e) => {
-                        $store.globalSearch.query = e.target.value;
-                    });
-                "
+                  x-init="
+                      $el.value = $store.globalSearch.query;
+                      $el.addEventListener('input', (e) => {
+                          $store.globalSearch.query = e.target.value;
+                      });
+                  "
 
-                @input="$store.globalSearch.query = $event.target.value"
-            >
+                  @input="$store.globalSearch.query = $event.target.value"
+              >
 
-            <!-- Tombol X -->
-            <button 
-                type="button"
-                @click="$store.globalSearch.query = ''; $el.focus()"
-                x-show="$store.globalSearch.query !== ''"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 z-10">
-                <i class="fas fa-times text-xs"></i>
-            </button>
-        </div>
+              <!-- Tombol X -->
+              <button 
+                  type="button"
+                  @click="$store.globalSearch.query = ''; $el.focus()"
+                  x-show="$store.globalSearch.query !== ''"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 z-10">
+                  <i class="fas fa-times text-xs"></i>
+              </button>
+          </div>
+        @endif
 
         <!-- Desktop User Button -->
         <div x-data="{ openDesktop: false }" class="relative hidden lg:flex justify-center items-center">

@@ -14,17 +14,19 @@ class BranchSeeder extends Seeder
     public function run(): void
     {
         Branch::create([
-            'central_code' => '4',
+            'head_office_id' => '1',
             'branch_code' => '4100',
-            'central_name' => 'PT. BPR Nusamba Tegallalang',
-            'branch_name' => 'Kantor Pusat Operasional Tegallalang',
+            'name' => 'Kantor Pusat Operasional Tegallalang',
+            'phone_number' => '(0361) 980805',
+            'address' => 'JL. Raya Tegallalang Ubud, Tegallalang, Kec. Gianyar, Kabupaten Gianyar, Bali 80561'
         ]);
 
         Branch::create([
-            'central_code' => '4',
+            'head_office_id' => '1',
             'branch_code' => '4101',
-            'central_name' => 'PT. BPR Nusamba Tegallalang',
-            'branch_name' => 'Kantor SKK Kredit Gianyar',
+            'name' => 'Kantor SKK Kredit Gianyar',
+            'phone_number' => ' (0361) 948910',
+            'address' => 'Jl. Patih Jelantik, Gianyar'
         ]);
     }
 }

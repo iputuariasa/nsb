@@ -20,4 +20,8 @@ class Branch extends Model
     {
         return $this->hasMany(Loan::class);
     }
+
+    public function head_office(){
+        return $this->belongsTo(HeadOffice::class, 'head_office_id');
+    }
 }
