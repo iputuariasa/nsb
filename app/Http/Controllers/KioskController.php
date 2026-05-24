@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HeadOffice;
+use App\Models\Kiosk;
 use Illuminate\Http\Request;
 
-class HeadOfficeController extends Controller
+class KioskController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -29,25 +29,26 @@ class HeadOfficeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'branch_id' => 'required|exists:branches,id',
             'name'    => 'required|string|max:255',
-            'code'    => 'required|string|unique:head_offices,code',
+            'code'    => 'required|string|unique:kiosks,code',
             'address' => 'nullable|string',
             'phone'   => 'nullable|string',
             'email'   => 'nullable|email|max:255',
         ]);
 
-        $headOffice = HeadOffice::create($validated);
+        $kiosk = Kiosk::create($validated);
 
         return response()->json([
-            'message' => 'Kantor Pusat berhasil ditambahkan',
-            'headOffice' => $headOffice
+            'message' => 'Data kiosk berhasil ditambahkan',
+            'kiosk' => $kiosk
         ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(HeadOffice $headOffice)
+    public function show(Kiosk $kiosk)
     {
         //
     }
@@ -55,7 +56,7 @@ class HeadOfficeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(HeadOffice $headOffice)
+    public function edit(Kiosk $kiosk)
     {
         //
     }
@@ -63,33 +64,33 @@ class HeadOfficeController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, HeadOffice $headOffice)
+    public function update(Request $request, Kiosk $kiosk)
     {
         $validated = $request->validate([
             'name'    => 'required|string|max:255',
-            'code'    => 'required|string|unique:head_offices,code,' . $headOffice->id,
+            'code'    => 'required|string|unique:kiosks,code,' . $kiosk->id,
             'address' => 'nullable|string',
             'phone'   => 'nullable|string|max:20',
             'email'   => 'nullable|email|max:255',
         ]);
 
-        $headOffice->update($validated);
+        $kiosk->update($validated);
 
         return response()->json([
-            'message' => 'Kantor Pusat berhasil diupdate',
-            'headOffice' => $headOffice
+            'message' => 'Data kiosk berhasil diupdate',
+            'kiosk' => $kiosk
         ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(HeadOffice $headOffice)
+    public function destroy(Kiosk $kiosk)
     {
-        $headOffice->delete();
+        $kiosk->delete();
 
         return response()->json([
-            'message' => 'Kantor Pusat berhasil dihapus'
+            'message' => 'Data kiosk berhasil dihapus'
         ]);
     }
 }

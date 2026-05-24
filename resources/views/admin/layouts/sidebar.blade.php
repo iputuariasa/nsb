@@ -15,10 +15,10 @@
           <span class="ml-2">Dashboard</span>
         </a>
       </li>
-      <li x-data="{ open: {{ Request::is('master*') || Request::is('users*') || Request::is('branches*') || Request::is('pillars*') ? 'true' : 'false' }} }">
+      <li x-data="{ open: {{ Request::is('master*') || Request::is('users*') || Request::is('office_networks*') || Request::is('pillars*') ? 'true' : 'false' }} }">
           <button 
               @click="open = !open" 
-              class="{{ Request::is('master*') || Request::is('users*') || Request::is('branches*') || Request::is('pillars*') ? 'active' : '' }} 
+              class="{{ Request::is('master*') || Request::is('users*') || Request::is('office_networks*') || Request::is('pillars*') ? 'active' : '' }} 
               flex items-center justify-between px-4 py-2 w-full rounded-lg transition hover:bg-gray-200">
 
               <div class="flex items-center">
@@ -48,11 +48,11 @@
               </li>
               <li>
                   <a 
-                      href="/branches" 
-                      class="{{ Request::is('branches*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
+                      href="/office_networks" 
+                      class="{{ Request::is('office_networks*') ? 'active' : '' }} flex items-center px-4 py-2 rounded-lg transition hover:bg-gray-200">
                       
                       <i class="fa-solid fa-code-branch text-orange-500 w-6"></i>
-                      <span class="ml-2">Data Cabang</span>
+                      <span class="ml-2">Jaringan Kantor</span>
                   </a>
               </li>
               @if (Auth::user()->role == "credit" || "admin")

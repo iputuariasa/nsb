@@ -20,7 +20,9 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
+        $this->call(HeadOfficeSeeder::class);
         $this->call(BranchSeeder::class);
+        $this->call(KioskSeeder::class);
 
         User::create([
             'branch_id' => 1,

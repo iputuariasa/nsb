@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\HeadOffice;
+use App\Models\Kiosk;
+use App\Models\Loan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,7 +24,13 @@ class Branch extends Model
         return $this->hasMany(Loan::class);
     }
 
-    public function head_office(){
-        return $this->belongsTo(HeadOffice::class, 'head_office_id');
+    public function headOffice()
+    {
+        return $this->belongsTo(HeadOffice::class);
+    }
+
+    public function kiosks()
+    {
+        return $this->hasMany(Kiosk::class);
     }
 }

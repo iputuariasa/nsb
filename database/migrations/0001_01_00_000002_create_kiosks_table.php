@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('head_offices', function (Blueprint $table) {
+        Schema::create('kiosks', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('branch_id')
+                  ->constrained('branches')
+                  ->onDelete('cascade');
+
             $table->string('name');
             $table->string('code')->unique()->nullable();
             $table->text('address')->nullable();
@@ -20,6 +24,9 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            // Index
+            $table->index('branch_id');
         });
     }
 
@@ -28,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('head_offices');
+        Schema::dropIfExists('kiosks');
     }
 };

@@ -12,9 +12,7 @@ class BranchController extends Controller
      */
     public function index()
     {
-        $title = 'Data Cabang';
-        $branches = Branch::all();
-        return view('admin.branches.index', compact('branches','title'));
+       //
     }
 
     /**
@@ -31,18 +29,20 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'central_code' => 'required|string|max:10',
-            'branch_code' => 'required|string|min:4|unique:branches,branch_code',
-            'central_name' => 'required|string',
-            'branch_name' => 'required|string',
+            'head_office_id' => 'required|exists:head_offices,id',
+            'name'    => 'required|string|max:255',
+            'code'    => 'required|string|unique:branches,code',
+            'address' => 'nullable|string',
+            'phone'   => 'nullable|string',
+            'email'   => 'nullable|email|max:255',
         ]);
 
         $branch = Branch::create($validated);
 
         return response()->json([
-            'message' => 'Data cabang berhasil disimpan',
+            'message' => 'Data cabang berhasil ditambahkan',
             'branch' => $branch
-        ]);
+        ], 201);
     }
 
     /**
@@ -67,10 +67,11 @@ class BranchController extends Controller
     public function update(Request $request, Branch $branch)
     {
         $validated = $request->validate([
-            'central_code' => 'required|string|max:10',
-            'branch_code' => 'required|string|min:4|unique:branches,branch_code,' . $branch->id,
-            'central_name' => 'required|string',
-            'branch_name' => 'required|string',
+            'name'    => 'required|string|max:255',
+            'code'    => 'required|string|unique:branches,code,' . $branch->id,
+            'address' => 'nullable|string',
+            'phone'   => 'nullable|string|max:20',
+            'email'   => 'nullable|email|max:255',
         ]);
 
         $branch->update($validated);

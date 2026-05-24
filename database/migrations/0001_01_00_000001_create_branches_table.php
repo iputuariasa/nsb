@@ -13,12 +13,20 @@ return new class extends Migration
     {
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('head_office_id')->references('id')->on('head_offices')->onDelete('cascade')->onUpdate('cascade');
-            $table->string('branch_code');
+            $table->foreignId('head_office_id')
+                  ->constrained('head_offices')
+                  ->onDelete('cascade');
+
             $table->string('name');
-            $table->string('phone_number');
-            $table->string('address');
+            $table->string('code')->unique()->nullable();
+            $table->text('address')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('email')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+
+            // Index untuk performa
+            $table->index('head_office_id');
         });
     }
 
